@@ -1,0 +1,4 @@
+COOKIE
+.venv
+.mypy_cache
+input/
