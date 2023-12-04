@@ -57,7 +57,7 @@ def create_grid(input_file_contents: str):
 
     return grid
 
-        
+
 if __name__ == "__main__":
     start = time.time()
     solve()
