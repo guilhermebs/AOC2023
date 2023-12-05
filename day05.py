@@ -24,9 +24,7 @@ def solve():
             r for rg in transformed_ranges for r in t.get_destination_ranges(*rg)
         ]
 
-    breakpoint()
-
-    sol_part2 = None
+    sol_part2 = min(r[0] for r in transformed_ranges)
     print("Part 2:", sol_part2)
 
 
@@ -53,20 +51,21 @@ class Transformation():
                 ))
                 handled.append((n, min(ln, l - (n - src))))
             # Some other part of the interval is inside "src"
-            if n <= src < n + ln:
+            elif n <= src < n + ln:
                 destination_ranges.append((
                     dest, min(l, ln - (src - n))
                 ))
                 handled.append((src, min(l, ln - (src - n))))
-        print(ln, sum(dr[1] for dr in destination_ranges))
         handled = sorted(handled)
         handled.append((n + ln, 0))
+        # if the start has not been handled:
+        if handled[0][0] != n:
+            destination_ranges.append((n, min(ln, handled[0][0] - n)))
         for i, (s, ns) in enumerate(handled[:-1]):
             next_s, _ = handled[i + 1]
             if s + ns != next_s:
-                print("Adding")
                 destination_ranges.append((s + ns, next_s - (s + ns)))
-        print(ln, sum(dr[1] for dr in destination_ranges))
+        assert ln == sum(dr[1] for dr in destination_ranges)
         return destination_ranges
 
 
