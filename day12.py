@@ -10,24 +10,16 @@ EXAMPLE = """
 ????.######..#####. 1,6,5
 ?###???????? 3,2,1""".strip()
 
+
 def solve():
     input_file_contents = open(os.path.join("input", "day12")).read().rstrip()
     #input_file_contents = EXAMPLE
 
-    print(count_possible("?????#?#???#? 1,1,3,1"))
-    #  #?#??###???#?
-    #  #??#?###???#?
-    #  ?#?#?###???#?
-    #  #????#?###?#?
-    #  ?#???#?###?#?
-    #  ??#??#?###?#?
-    #  ???#?#?###?#?
-    #count_possible("???????? 4,1,1")
+
     sol_part1 = sum(count_possible(line) for line in input_file_contents.splitlines())
-    #sol_part1 = None
     print("Part 1:", sol_part1)
 
-    sol_part2 = None
+    sol_part2 = sum(count_pt2(line) for line in input_file_contents.splitlines())
     print("Part 2:", sol_part2)
 
 
@@ -35,25 +27,24 @@ def count_possible(line):
     pipes, groups = line.split(" ")
     groups = tuple(int(i) for i in groups.split(","))
     n = number_possible(pipes + ".", groups)
-    print(line, n)
     return n
 
 
-#@functools.cache
+def count_pt2(line):
+    pipes, groups = line.split(" ")
+    groups = tuple(int(i) for i in groups.split(",")) * 5
+    n = number_possible("?".join([pipes]*5) + ".", groups)
+    return n
+
+
+@functools.cache
 def number_possible(pipes, groups):
     count = 0
+    if len(groups) == 0:
+        return int(not ("#" in pipes))
     for i in range(len(pipes) - groups[0]):
         if all(p in ("?", "#") for p in pipes[i:i+groups[0]]) and pipes[i+groups[0]] in ("?", "."):
-            if len(groups) == 1:
-                # No more unnacounted "#" ahead
-                if all(p in ("?", ".") for p in pipes[i+groups[0]:]):
-                    count += 1
-                else:
-                    continue
-            else:
-                n_pos = number_possible(pipes[i+groups[0]+1:], groups[1:])
-                #print(pipes[:i+groups[0]+1], pipes[i+groups[0]+1:], groups, n_pos)
-                count += n_pos
+            count += number_possible(pipes[i+groups[0]+1:], groups[1:])
         if pipes[i] == "#":
             break
     return count
