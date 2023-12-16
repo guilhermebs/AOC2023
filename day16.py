@@ -1,5 +1,7 @@
 import os
 import time
+import multiprocessing
+import functools
 
 EXAMPLE = r"""
 .|...\....
@@ -20,17 +22,19 @@ def solve():
     sol_part1 = count_energized(cave,((0, 0), ">"))
     print("Part 1:", sol_part1)
 
-    max_energized = 0
+    starting_positions = []
     for j, direction in ((0, "v"), (len(cave) - 1, "^")):
-        for i, _ in enumerate(cave[0]):
-            max_energized = max(max_energized, count_energized(cave, ((i, j), direction)))
+        starting_positions.extend(((i, j), direction) for i, _ in enumerate(cave[0]))
 
     for i, direction in ((0, ">"), (len(cave[0]) - 1, "<")):
-        for j, _ in enumerate(cave):
-            max_energized = max(max_energized, count_energized(cave, ((i, j), direction)))
+        starting_positions.extend(((i, j), direction) for j, _ in enumerate(cave))
 
-    sol_part2 = max_energized
+    with multiprocessing.Pool(8) as p:
+        results = p.map(functools.partial(count_energized, cave), starting_positions)
+
+    sol_part2 = max(results)
     print("Part 2:", sol_part2)
+
 
 def count_energized(cave, start):
     energized = propagate_beam(cave, start)
