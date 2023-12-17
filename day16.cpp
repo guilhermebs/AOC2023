@@ -1,9 +1,8 @@
 #include<iostream>
 #include<fstream>
-#include<ostream>
 #include<string>
 #include<vector>
-#include<unordered_set>
+#include<chrono>
 
 template <class T>
 inline void hash_combine(std::size_t & s, const T & v)
@@ -140,6 +139,7 @@ size_t propagate_beam(std::vector<std::string> *cave, BeamFront start) {
 }
 
 int main() {
+    auto started = std::chrono::high_resolution_clock::now();
     std::vector<std::string> cave;
     //std::ifstream file("input/day16_example");
     std::ifstream file("input/day16");
@@ -165,6 +165,9 @@ int main() {
     };
 
     std::cout << "Part 2 solution: " << sol_part2 << "\n";
+    auto done = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << "ms\n";
+
     return 0; 
 }
 
