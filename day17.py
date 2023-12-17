@@ -23,64 +23,75 @@ def solve():
 
     heat_map = [[int(c) for c in line] for line in input_file_contents.splitlines()]
 
-    sol_part1 = path_search(heat_map)
+    sol_part1 = path_search(heat_map, 1, 3)
     print("Part 1:", sol_part1)
 
-    sol_part2 = None
+    sol_part2 = path_search(heat_map, 4, 10)
     print("Part 2:", sol_part2)
 
 
-def path_search(heat_map):
-    heap = [(0, ((0, 0), (0, 0), 0))]
+def path_search(heat_map, min_seq, max_seq):
+    start_state = ((0, 0), (0, 0))
+    heap = [(0, start_state)]
     heapq.heapify(heap)
-    seen = set()
+    costs = {start_state: 0}
     map_dims = (len(heat_map[0]), len(heat_map))
     objective = (len(heat_map[0]) - 1, len(heat_map) - 1)
+    t = 0
     while len(heap) > 0:
-        cost, state = heapq.heappop(heap)
+        t += 1
+        f, state = heapq.heappop(heap)
         if state[0] == objective:
-            return cost
-        for d in descendents(map_dims, state):
-            if d not in seen:
-                seen.add(d)
-                heapq.heappush(
-                    heap,
-                    (cost + heat_map[d[0][0]][d[0][1]], d)
-                )
+            return costs[state]
+        for d_row in descendents(map_dims, state, min_seq, max_seq):
+            if len(d_row) == 0:
+                continue
+            new_cost = costs[state]
+            for i in range(1, min_seq):
+                new_cost += heat_map[state[0][0] + d_row[0][1][0] * i][state[0][1] + d_row[0][1][1] * i]
+            for d in d_row:
+                new_cost += heat_map[d[0][0]][d[0][1]]
+                f = heuristic(d, objective) + new_cost
+                if d not in costs or new_cost < costs[d]:
+                    heapq.heappush(heap, (f, d))
+                    costs[d] = new_cost
 
     return None
 
 
-def descendents(map_dims, state):
-    pos, dir_, n_prev = state
-    east = (1, 0)
-    west = (-1, 0)
-    north = (0, -1)
-    south = (0, 1)
-    oposite = {
-        east: west,
-        west: east,
-        north: south,
-        south: north,
-        (0, 0): None
+def descendents(map_dims, state, min_seq, max_seq):
+    pos, dir_ = state
+    pos = complex(*pos)
+    east = complex(1, 0)
+    west = complex(-1, 0)
+    north = complex(0, -1)
+    south = complex(0, 1)
+    new_dir = {
+        (1, 0): (north, south),
+        (-1, 0): (north, south),
+        (0, -1): (east, west),
+        (0, 1): (east, west),
+        (0, 0): (north, south, east, west)
     }
 
-    def is_dir_ok(d):
+    def is_ok(d, i):
         return (
-            0 <= tuplesum(d, pos)[0] < map_dims[0] and
-            0 <= tuplesum(d, pos)[1] < map_dims[1] and
-            not (n_prev == 3 and d == dir_) and
-            d != oposite[dir_])
+            0 <= (d*i + pos).real < map_dims[0] and
+            0 <= (d*i + pos).imag < map_dims[1])
 
     return [
-        (tuplesum(d, pos), d, n_prev + 1 if d == dir_ else 1)
-        for d in (east, west, north, south) if is_dir_ok(d)
+        [(cmp2tup(d*i + pos), cmp2tup(d)) for i in range(min_seq, max_seq+1) if is_ok(d, i)]
+        for d in new_dir[dir_]
     ]
 
 
-def tuplesum(t1, t2):
-    return (t1[0]+t2[0], t1[1]+t2[1])
+def heuristic(state, objective):
+    pos, _ = state
+    return abs(pos[0] - objective[0]) + abs(pos[1] - objective[1])
 
+
+def cmp2tup(cmp):
+    return (int(cmp.real), int(cmp.imag))
 
 if __name__ == "__main__":
     start = time.time()
