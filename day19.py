@@ -1,5 +1,6 @@
 from collections import deque
 import copy
+from math import prod
 import os
 import time
 import operator
@@ -86,12 +87,12 @@ def pt2(rules):
                     interval_in_limit = copy.deepcopy(interval)
                     interval_in_limit[r[0]] = (r[2] + 1, interval[r[0]][1])
                     to_process.appendleft([r[3], interval_in_limit])
-                    interval[r[0]] = (interval[r[0]][1], r[2])
+                    interval[r[0]] = (interval[r[0]][0], r[2])
 
         else:
             to_process.appendleft([rules[rule_name][-1], interval])
-    breakpoint()
-    return rule_name == 'A'
+
+    return sum(prod(e - s for e, s in interval) for interval in accepted)
 
 
 
