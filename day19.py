@@ -1,3 +1,5 @@
+from collections import deque
+import copy
 import os
 import time
 import operator
@@ -28,7 +30,7 @@ def solve():
     sol_part1 = sum(sum(p) for p in parts if apply_rules(p, rules))
     print("Part 1:", sol_part1)
 
-    sol_part2 = None
+    sol_part2 = pt2(rules)
     print("Part 2:", sol_part2)
 
 
@@ -42,8 +44,55 @@ def apply_rules(part, rules):
         else:
             rule_name = rules[rule_name][-1]
 
- 
     return rule_name == 'A'
+
+def pt2(rules):
+    to_process = deque([['in', [(1, 4000)]*4]])
+    accepted = []
+    rejected = []
+    rule_name = 'in'
+    while len(to_process) > 0:
+        rule_name, interval = to_process.pop()
+        if rule_name == 'A':
+            accepted.append(interval)
+            continue
+        elif rule_name == 'R':
+            rejected.append(interval)
+            continue
+        for r in rules[rule_name][:-1]:
+            if r[1] == operator.lt:
+                # Interval is totaly outside the limit
+                if interval[r[0]][0] >= r[2]:
+                    continue
+                # Interval is totaly inside the limit
+                elif interval[r[0]][1] < r[2]:
+                    to_process.appendleft([r[3], interval])
+                    break
+                # interval partially within the limit
+                else:
+                    interval_in_limit = copy.deepcopy(interval)
+                    interval_in_limit[r[0]] = (interval[r[0]][0], r[2] - 1) 
+                    to_process.appendleft([r[3], interval_in_limit])
+                    interval[r[0]] = (r[2], interval[r[0]][1]) 
+            if r[1] == operator.gt:
+                # Interval is totaly outside the limit
+                if interval[r[0]][1] <= r[2]:
+                    continue
+                # Interval is totaly inside the limit
+                elif interval[r[0]][0] > r[2]:
+                    to_process.appendleft([r[3], interval])
+                # interval partially within the limit
+                else:
+                    interval_in_limit = copy.deepcopy(interval)
+                    interval_in_limit[r[0]] = (r[2] + 1, interval[r[0]][1])
+                    to_process.appendleft([r[3], interval_in_limit])
+                    interval[r[0]] = (interval[r[0]][1], r[2])
+
+        else:
+            to_process.appendleft([rules[rule_name][-1], interval])
+    breakpoint()
+    return rule_name == 'A'
+
 
 
 if __name__ == "__main__":
