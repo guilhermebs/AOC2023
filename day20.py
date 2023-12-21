@@ -1,9 +1,10 @@
-from collections import defaultdict, deque
+import math
+import time
+from collections import deque
+from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
-from itertools import count
 import os
-import time
 
 EXAMPLE1 = """
 broadcaster -> a, b, c
@@ -38,6 +39,8 @@ def solve():
         if isinstance(m, ConjunctionModule):
             m.add_initial_state(modules)
 
+    modules_init = deepcopy(modules)
+
     counts = {Signal.LOW: 0, Signal.HIGH: 0}
     for _ in range(1000):
         push_count = push_button(modules)
@@ -47,8 +50,33 @@ def solve():
     sol_part1 = counts[Signal.LOW] * counts[Signal.HIGH]
     print("Part 1:", sol_part1)
 
-    sol_part2 = None
+    modules = modules_init
+    #while not activate_rx(modules):
+    #    if count % 10000 == 0:
+    #        print(count)
+    #    count += 1
+
+    sol_part2 = solve_pt2(modules)
     print("Part 2:", sol_part2)
+
+
+def solve_pt2(modules):
+    high_inputs = {k: []  for k in modules['jz'].prev_inputs.keys()}
+
+    for n_presses in range(1, 100000):
+        to_process = deque([("broadcaster", Signal.LOW, None)])
+        while len(to_process) > 0:
+            dest, signal, source = to_process.pop()
+            if dest in modules:
+                for s in modules[dest].handle_signal(signal, source):
+                    if dest == "jz":
+                        for k, v in modules["jz"].prev_inputs.items():
+                            if v == Signal.HIGH and n_presses not in high_inputs[k]:
+                                high_inputs[k].append(n_presses)
+                    to_process.appendleft(s)
+    periods = {k: [h1 - h0 for h0, h1 in zip(v, v[1:])] for k, v in high_inputs.items()}
+    print(periods)
+    return math.lcm(*[p[0] for p in periods.values()])
 
 
 class Signal(Enum):
@@ -112,7 +140,6 @@ class ConjunctionModule(Module):
 
 
 def push_button(modules):
-    modules["broadcaster"]
     counts = {Signal.LOW: 0, Signal.HIGH: 0}
     to_process = deque([("broadcaster", Signal.LOW, None)])
 
