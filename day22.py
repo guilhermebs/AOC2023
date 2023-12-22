@@ -30,7 +30,7 @@ def solve():
     sol_part1 = len(all_bricks - cannot_desintegrate)
     print("Part 1:", sol_part1)
 
-    sol_part2 = None
+    sol_part2 = sum(count_falls(supported_by, i) for i, _ in enumerate(bricks))
     print("Part 2:", sol_part2)
 
 
@@ -73,6 +73,21 @@ def simulate_fall(bricks):
         ))
 
     return new_brick_positions, supported_by
+
+
+def count_falls(supported_by, removed):
+    all_removed = {removed}
+    while True:
+        n_removed = 0
+        for bi, supporing in enumerate(supported_by):
+            if bi in all_removed:
+                continue
+            if len(supporing - all_removed) == 0:
+                all_removed.add(bi)
+                n_removed += 1
+        if n_removed == 0:
+            break
+    return len(all_removed) - 1
 
 
 if __name__ == "__main__":
