@@ -48,12 +48,12 @@ struct std::hash<BeamFront> {
   }
 };
 
-std::vector<BeamFront> descendents(std::vector<std::string> *cave, BeamFront bf) {
+std::vector<BeamFront> descendents(const std::vector<std::string> &cave, BeamFront bf) {
     BeamFront right = BeamFront{bf.i + 1, bf.j, Direction::right};
     BeamFront left = BeamFront{bf.i - 1, bf.j, Direction::left};
     BeamFront up = BeamFront{bf.i, bf.j - 1, Direction::up};
     BeamFront down = BeamFront{bf.i, bf.j +1, Direction::down};
-    char cur_cel = (*cave)[bf.j][bf.i];
+    char cur_cel = cave[bf.j][bf.i];
 
     if ((cur_cel == '.' || cur_cel == '-') && bf.dir == Direction::right)
     {
@@ -114,11 +114,11 @@ std::vector<BeamFront> descendents(std::vector<std::string> *cave, BeamFront bf)
     return std::vector<BeamFront>{};
 }
 
-size_t propagate_beam(std::vector<std::string> *cave, BeamFront start) {
+size_t propagate_beam(const std::vector<std::string> & cave, BeamFront start) {
     std::deque<BeamFront> beam_fronts{start};
     std::vector<std::bitset<4>> seen;
-    auto const nrows{(*cave).size()};
-    auto const ncols{(*cave).front().size()};
+    auto const nrows{cave.size()};
+    auto const ncols{cave.front().size()};
     seen.resize(nrows*ncols);
     for (auto s: seen) {s.reset();};
 
@@ -149,19 +149,19 @@ int main() {
     {
         cave.push_back(line);
     }
-    auto sol_part1 = propagate_beam(&cave, BeamFront{0, 0, Direction::right});
+    auto sol_part1 = propagate_beam(cave, BeamFront{0, 0, Direction::right});
     std::cout << "Part 1 solution: " << sol_part1 << "\n";
 
     size_t sol_part2 = 0;
     for (int j = 0; j < cave.size(); j++)
     {
-        sol_part2 = std::max(sol_part2, propagate_beam(&cave, BeamFront{0, j, Direction::right}));
-        sol_part2 = std::max(sol_part2, propagate_beam(&cave, BeamFront{(int) cave[0].size() - 1, j, Direction::left}));
+        sol_part2 = std::max(sol_part2, propagate_beam(cave, BeamFront{0, j, Direction::right}));
+        sol_part2 = std::max(sol_part2, propagate_beam(cave, BeamFront{(int) cave[0].size() - 1, j, Direction::left}));
     };
     for (int i = 0; i < cave[0].size(); i++)
     {
-        sol_part2 = std::max(sol_part2, propagate_beam(&cave, BeamFront{i, 0, Direction::down}));
-        sol_part2 = std::max(sol_part2, propagate_beam(&cave, BeamFront{i, (int) cave.size() - 1, Direction::up}));
+        sol_part2 = std::max(sol_part2, propagate_beam(cave, BeamFront{i, 0, Direction::down}));
+        sol_part2 = std::max(sol_part2, propagate_beam(cave, BeamFront{i, (int) cave.size() - 1, Direction::up}));
     };
 
     std::cout << "Part 2 solution: " << sol_part2 << "\n";
